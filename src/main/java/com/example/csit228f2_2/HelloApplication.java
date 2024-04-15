@@ -24,8 +24,10 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class HelloApplication extends Application {
     public static List<User> users;
@@ -35,11 +37,6 @@ public class HelloApplication extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        users = new ArrayList<>();
-        // LOAD USERS
-        users.add(new User("tsgtest", "123456"));
-        users.add(new User("jayvince", "secret"));
-        users.add(new User("russselll", "palma"));
 
         AnchorPane pnMain = new AnchorPane();
         GridPane grid = new GridPane();
@@ -109,13 +106,30 @@ public class HelloApplication extends Application {
         actionTarget.setFont(Font.font(30));
         grid.add(actionTarget, 1, 6);
 
+
+
         btnSignIn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
                 String username = tfUsername.getText();
                 String password = pfPassword.getText();
-                for (User user : users) {
-                    if (username.equals(user.username) && password.equals(user.password)) {
+                String name = "";
+                String pass = "";
+                try(Connection c = MySQLConnection.getConnection();
+                    Statement statement = c.createStatement()) {
+                    String selectQuery = "SELECT * FROM users";
+                    ResultSet result = statement.executeQuery(selectQuery);
+
+                    while(result.next()){
+                        int id = result.getInt("id");
+                        name = result.getString("username");
+                        pass = result.getString("password");
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                    if (username.equals(name) && password.equals(pass)) {
                         FXMLLoader loader = new FXMLLoader(getClass().getResource("hello-view.fxml"));
                         try {
                             Scene scene = new Scene(loader.load());
@@ -124,10 +138,38 @@ public class HelloApplication extends Application {
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
+                    }else{
+                        actionTarget.setText("Invalid username/password");
+                        actionTarget.setOpacity(1);
                     }
+            }
+        });
+
+
+        Button btnRegister = new Button("Register");
+        btnSignIn.setFont(Font.font(45));
+        hbSignIn.getChildren().add(btnRegister);
+
+
+        btnRegister.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                try(Connection c = MySQLConnection.getConnection();
+                    PreparedStatement preparedStatement = c.prepareStatement(
+                            "INSERT INTO users (username, password) VALUES (?, ?)"
+                    )) {
+                    String username = tfUsername.getText();
+                    String password = pfPassword.getText();
+                    preparedStatement.setString(1, username);
+                    preparedStatement.setString(2, password);
+
+                    int rowsInserted = preparedStatement.executeUpdate();
+                    if(rowsInserted > 0){
+                        System.out.println("Data inserted successfully");
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
-                actionTarget.setText("Invalid username/password");
-                actionTarget.setOpacity(1);
             }
         });
 
@@ -139,6 +181,12 @@ public class HelloApplication extends Application {
         };
         tfUsername.setOnKeyTyped(fieldChange);
         pfPassword.setOnKeyTyped(fieldChange);
+
+
+
+
+
+        
 
 
         Scene scene = new Scene(pnMain, 700, 560);
