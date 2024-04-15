@@ -10,11 +10,6 @@ public class HelloController {
     private Label welcomeText;
 
     @FXML
-    private void onHelloButtonClick() {
-//        welcomeText.setText("Welcome to JavaFX Application!");
-    }
-
-    @FXML
     private void onNightModeClick() {
         if (tbNight.isSelected()) {
             // night mode
