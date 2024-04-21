@@ -104,11 +104,15 @@ public class HelloApplication extends Application {
         btnSignIn.setFont(Font.font(30));
         Button btnRegister = new Button("Register");
         btnRegister.setFont(Font.font(30));
-        HBox hbButtons = new HBox();
-        hbButtons.getChildren().addAll(btnSignIn, btnRegister);
-        hbButtons.setAlignment(Pos.CENTER);
-        hbButtons.setSpacing(20);
-        grid.add(hbButtons, 0, 3, 3, 1);
+        Button btnUpdate = new Button("Update");
+        btnUpdate.setFont(Font.font(30));
+        Button btnDelete = new Button("Delete");
+        btnDelete.setFont(Font.font(30));
+        HBox hbCrudButtons = new HBox();
+        hbCrudButtons.getChildren().addAll(btnSignIn, btnRegister, btnUpdate, btnDelete);
+        hbCrudButtons.setAlignment(Pos.CENTER);
+        hbCrudButtons.setSpacing(20);
+        grid.add(hbCrudButtons, 0, 3, 4, 1);
 
         final Text actionTarget = new Text("");
         actionTarget.setFont(Font.font(20));
@@ -165,27 +169,100 @@ public class HelloApplication extends Application {
 
 
 
+        // Event handler for the Register button
         btnRegister.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent actionEvent) {
-                try (Connection c = MySQLConnection.getConnection();
-                     PreparedStatement preparedStatement = c.prepareStatement(
-                             "INSERT INTO users (username, password) VALUES (?, ?)"
-                     )) {
+                try (Connection c = MySQLConnection.getConnection()) {
+                    // Check if a user with ID 1 already exists
+                    String checkQuery = "SELECT * FROM users WHERE id = 1";
+                    try (Statement checkStatement = c.createStatement();
+                         ResultSet resultSet = checkStatement.executeQuery(checkQuery)) {
+                        if (resultSet.next()) {
+                            System.out.println("User with ID 1 already exists. Registration not allowed.");
+                            return; // Exit the method
+                        }
+                    }
+
+                    // No user with ID 1 exists, proceed with registration
                     String username = tfUsername.getText();
                     String password = pfPassword.getText();
-                    preparedStatement.setString(1, username);
-                    preparedStatement.setString(2, password);
 
-                    int rowsInserted = preparedStatement.executeUpdate();
-                    if (rowsInserted > 0) {
-                        System.out.println("Data inserted successfully");
+                    // Check if username or password is blank
+                    if (username.isEmpty() || password.isEmpty()) {
+                        System.out.println("Username or password cannot be blank.");
+                        return; // Exit the method
+                    }
+
+                    // Insert the new user
+                    String insertQuery = "INSERT INTO users (username, password) VALUES (?, ?)";
+                    try (PreparedStatement preparedStatement = c.prepareStatement(insertQuery)) {
+                        preparedStatement.setString(1, username);
+                        preparedStatement.setString(2, password);
+
+                        int rowsInserted = preparedStatement.executeUpdate();
+                        if (rowsInserted > 0) {
+                            System.out.println("Data inserted successfully");
+                        }
                     }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
         });
+
+
+        // Event handler for the Update button
+        // Event handler for the Update button
+        btnUpdate.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                String username = tfUsername.getText();
+                String password = pfPassword.getText();
+
+                // Check if username or password is blank
+                if (username.isEmpty() || password.isEmpty()) {
+                    System.out.println("Username or password cannot be blank.");
+                    return; // Exit the method
+                }
+
+                try (Connection c = MySQLConnection.getConnection();
+                     PreparedStatement preparedStatement = c.prepareStatement(
+                             "UPDATE users SET username = ?, password = ? WHERE id = 1"
+                     )) {
+                    preparedStatement.setString(1, username);
+                    preparedStatement.setString(2, password);
+
+                    int rowsUpdated = preparedStatement.executeUpdate();
+                    if (rowsUpdated > 0) {
+                        System.out.println("User updated successfully");
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+
+// Event handler for the Delete button
+        btnDelete.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                try (Connection c = MySQLConnection.getConnection();
+                     PreparedStatement preparedStatement = c.prepareStatement(
+                             "DELETE FROM users WHERE id = 1"
+                     )) {
+                    int rowsDeleted = preparedStatement.executeUpdate();
+                    if (rowsDeleted > 0) {
+                        System.out.println("User deleted successfully");
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+
 
         EventHandler<KeyEvent> fieldChange = new EventHandler<KeyEvent>() {
             @Override

@@ -12,6 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static com.example.csit228f2_2.HelloController.currentStudentID;
+
 public class postSubmitController {
     @FXML
     private Label displayLabel;
@@ -22,20 +24,12 @@ public class postSubmitController {
     @FXML
     private Button btnDelete;
 
-    private String currentStudentID; // Field to store the current student's ID
-
-    // Setter method for the current student's ID
-    public void setCurrentStudentID(String studentID) {
-        this.currentStudentID = studentID;
-    }
-
     @FXML
     private void initialize() {
         // Check if currentStudentID is set
-        if (HelloController.currentStudentID != null) {
+        if (currentStudentID != null) {
             // Fetch student information from the database based on the current student's ID
             Student student = fetchStudentInformationFromDatabase(HelloController.currentStudentID);
-
             // Display the fetched information in the label
             String displayText = "Name: " + student.getName() + "\n"
                     + "ID: " + student.getId() + "\n"
@@ -61,7 +55,7 @@ public class postSubmitController {
         try (Connection connection = MySQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("SELECT * FROM students WHERE studentID = ?");
         ) {
-            statement.setString(1, currentStudentID); // Use the passed studentID parameter here
+            statement.setString(1, studentID); // Use the passed studentID parameter here
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     name = resultSet.getString("name");
@@ -107,7 +101,7 @@ public class postSubmitController {
     @FXML
     private void handleConfirmButtonClick() {
         // Show a confirmation dialog
-        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION, "Thank you!", ButtonType.OK);
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION, "Thank you! " + currentStudentID, ButtonType.OK);
         confirmation.setHeaderText(null);
         confirmation.showAndWait();
 
@@ -122,7 +116,7 @@ public class postSubmitController {
         try (Connection connection = MySQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement("DELETE FROM students WHERE studentID = ?");
         ) {
-            statement.setString(1, HelloController.currentStudentID);
+            statement.setString(1, currentStudentID);
             statement.executeUpdate();
             Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION, "Record Deleted", ButtonType.OK);
             confirmation.showAndWait();
