@@ -49,7 +49,7 @@ public class HelloApplication extends Application {
         GridPane grid = new GridPane();
         pnMain.getChildren().add(grid);
         grid.setAlignment(Pos.CENTER);
-        Text sceneTitle = new Text("Welcome to CSIT228");
+        Text sceneTitle = new Text("Enrollment Form");
         sceneTitle.setFill(Paint.valueOf("#325622"));
         sceneTitle.setFont(Font.font("Arial", FontWeight.EXTRA_BOLD, 69));
         grid.add(sceneTitle, 0, 0, 2, 1);
@@ -143,7 +143,7 @@ public class HelloApplication extends Application {
                         // Create table for student information
                         String createStudentTableQuery = "CREATE TABLE IF NOT EXISTS students (" +
                                 "id INT AUTO_INCREMENT PRIMARY KEY," +
-                                "studentID INT NOT NULL," +
+                                "studentID VARCHAR(50) NOT NULL," +
                                 "name VARCHAR(50) NOT NULL," +
                                 "email VARCHAR(50) NOT NULL," +
                                 "course VARCHAR(50) NOT NULL," +

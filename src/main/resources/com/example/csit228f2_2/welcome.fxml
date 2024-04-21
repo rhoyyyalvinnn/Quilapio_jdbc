@@ -3,12 +3,11 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.csit228f2_2.postSubmitController">
    <children>
-      <Button fx:id="btnUpdate" layoutX="135.0" layoutY="280.0" mnemonicParsing="false" text="Update" />
-      <Button fx:id="btnDelete" layoutX="395.0" layoutY="280.0" mnemonicParsing="false" text="Delete" />
-      <Label layoutX="135.0" layoutY="46.0" prefHeight="208.0" prefWidth="310.0" text="Label" />
-      <Button fx:id="btnConfirm" layoutX="264.0" layoutY="280.0" mnemonicParsing="false" text="Confirm" />
+      <Button fx:id="btnUpdate" layoutX="138.0" layoutY="280.0" mnemonicParsing="false" text="Update" />
+      <Button fx:id="btnDelete" layoutX="397.0" layoutY="280.0" onAction="#deleteStudentInformation" mnemonicParsing="false" text="Delete" />
+      <Label fx:id="displayLabel" layoutX="138.0" layoutY="72.0" prefHeight="208.0" prefWidth="310.0" text="Label" />
+      <Button fx:id="btnConfirm" layoutX="270.0" layoutY="280.0" onAction="#handleConfirmButtonClick" mnemonicParsing="false" text="Confirm" />
    </children>
 </AnchorPane>

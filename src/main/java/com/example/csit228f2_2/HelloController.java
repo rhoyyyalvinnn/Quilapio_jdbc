@@ -1,15 +1,22 @@
 package com.example.csit228f2_2;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class HelloController {
-    public ToggleButton tbNight;
     @FXML
     private TextField tfName;
 
@@ -32,15 +39,8 @@ public class HelloController {
     private TextField tfStudentId;
 
     @FXML
-    private void onNightModeClick() {
-        if (tbNight.isSelected()) {
-            // night mode
-            tbNight.getScene().getStylesheets().add(
-                    getClass().getResource("styles.css").toExternalForm());
-        } else {
-            tbNight.getScene().getStylesheets().clear();
-        }
-    }
+    public static String currentStudentID;
+
 
     @FXML
     private void handleSubmit() {
@@ -48,6 +48,7 @@ public class HelloController {
         String email = tfEmail.getText();
         String course = courseComboBox.getValue();
         String studentId = tfStudentId.getText();
+        currentStudentID = studentId;
         boolean subject1Selected = subject1CheckBox.isSelected();
         boolean subject2Selected = subject2CheckBox.isSelected();
         boolean subject3Selected = subject3CheckBox.isSelected();
@@ -74,7 +75,12 @@ public class HelloController {
                         updateStatement.setInt(5, subject2Selected ? 1 : 0);
                         updateStatement.setInt(6, subject3Selected ? 1 : 0);
                         updateStatement.setString(7, studentId);
-                        updateStatement.executeUpdate();
+                        int updatedRows = updateStatement.executeUpdate();
+                        if (updatedRows > 0) {
+                            showInformationAlert("Enrollment Updated Successfully");
+                            System.out.println(currentStudentID);
+                            loadWelcomeFXML(); // Call loadWelcomeFXML with the studentId
+                        }
                     }
                 } else {
                     // User not enrolled yet, insert the enrollment information
@@ -87,7 +93,13 @@ public class HelloController {
                         studentStatement.setInt(5, subject1Selected ? 1 : 0);
                         studentStatement.setInt(6, subject2Selected ? 1 : 0);
                         studentStatement.setInt(7, subject3Selected ? 1 : 0);
-                        studentStatement.executeUpdate();
+                        int insertedRows = studentStatement.executeUpdate();
+                        if (insertedRows > 0) {
+                            showInformationAlert("Enrollment Inserted Successfully");
+                            // Load welcome.fxml
+                            System.out.println(currentStudentID);
+                            loadWelcomeFXML(); // Call loadWelcomeFXML with the studentId
+                        }
                     }
                 }
             }
@@ -95,7 +107,7 @@ public class HelloController {
             // Commit the transaction
             connection.commit();
             System.out.println("Transaction committed successfully.");
-        } catch (SQLException e) {
+        } catch (SQLException | IOException e) {
             // Roll back the transaction if any operation fails
             e.printStackTrace();
             System.out.println("Transaction failed. Rolling back changes...");
@@ -108,4 +120,22 @@ public class HelloController {
         }
     }
 
+    private void loadWelcomeFXML() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("welcome.fxml"));
+        Parent root = loader.load();
+
+        // Create a new scene and set it in the stage
+        Scene scene = new Scene(root);
+        Stage stage = (Stage) tfName.getScene().getWindow();
+        stage.setScene(scene);
+    }
+
+
+    private void showInformationAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Information");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
 }
