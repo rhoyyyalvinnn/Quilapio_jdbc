@@ -33,6 +33,18 @@ public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
+        try(Connection c = MySQLConnection.getConnection();
+            Statement statement = c.createStatement()) {
+            String createTableQuery = "CREATE TABLE IF NOT EXISTS users (" +
+                    "id INT AUTO_INCREMENT PRIMARY KEY," +
+                    "username VARCHAR(50) NOT NULL, " +
+                    "password VARCHAR(50) NOT NULL)";
+            statement.execute(createTableQuery);
+            System.out.println("Table Created Successfully");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         AnchorPane pnMain = new AnchorPane();
         GridPane grid = new GridPane();
         pnMain.getChildren().add(grid);
@@ -98,7 +110,7 @@ public class HelloApplication extends Application {
         hbButtons.setSpacing(20);
         grid.add(hbButtons, 0, 3, 3, 1);
 
-        final Text actionTarget = new Text("Hi");
+        final Text actionTarget = new Text("");
         actionTarget.setFont(Font.font(20));
         grid.add(actionTarget, 1, 4);
 
@@ -111,33 +123,47 @@ public class HelloApplication extends Application {
                 String pass = "";
                 try (Connection c = MySQLConnection.getConnection();
                      Statement statement = c.createStatement()) {
-                    String selectQuery = "SELECT * FROM users";
+                    String selectQuery = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
                     ResultSet result = statement.executeQuery(selectQuery);
 
-                    while (result.next()) {
+                    if (result.next()) {
+                        // Successful sign-in
                         int id = result.getInt("id");
                         name = result.getString("username");
                         pass = result.getString("password");
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
 
-                if (username.equals(name) && password.equals(pass)) {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("hello-view.fxml"));
-                    try {
+                        // Load hello-view.fxml
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("hello-view.fxml"));
                         Scene scene = new Scene(loader.load());
+
+                        // Set the scene for the stage
                         stage.setScene(scene);
                         stage.show();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+
+                        // Create table for student information
+                        String createStudentTableQuery = "CREATE TABLE IF NOT EXISTS students (" +
+                                "id INT AUTO_INCREMENT PRIMARY KEY," +
+                                "studentID INT NOT NULL," +
+                                "name VARCHAR(50) NOT NULL," +
+                                "email VARCHAR(50) NOT NULL," +
+                                "course VARCHAR(50) NOT NULL," +
+                                "subject_oop1 TINYINT DEFAULT 0," +
+                                "subject_Rizal TINYINT DEFAULT 0," +
+                                "subject_Calculus TINYINT DEFAULT 0)";
+                        statement.execute(createStudentTableQuery);
+                        System.out.println("Student Table Created Successfully");
+                    } else {
+                        // Invalid username/password
+                        actionTarget.setText("Invalid username/password");
+                        actionTarget.setOpacity(1);
                     }
-                } else {
-                    actionTarget.setText("Invalid username/password");
-                    actionTarget.setOpacity(1);
+                } catch (SQLException | IOException e) {
+                    e.printStackTrace();
                 }
             }
         });
+
+
 
         btnRegister.setOnAction(new EventHandler<ActionEvent>() {
             @Override
